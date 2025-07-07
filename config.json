@@ -1,0 +1,42 @@
+{
+  "user": {
+    "email": "samiradmin@yopmail.com",
+    "password": "1234Abcd"
+  },
+  "sensor": {
+    "sensorId": 1,
+    "expiresAt": "2025-12-31T23:59:59.999Z"
+  },
+  "datastream": {
+    "value": "8",
+    "telemetryDataId": 1,
+    "recievedAt": "2025-06-10T11:16:45.149Z"
+  },
+  "batchDataStreams": [
+    {
+      "dataStreams": [
+        
+        {
+          "value": "40.7",
+          "telemetryDataId": 29,
+          "recievedAt": "2025-05-16T12:00:00.000Z"
+        },
+        {
+          "value": "25.2",
+          "telemetryDataId": 30,
+          "recievedAt": "2025-05-16T12:01:00.000Z"
+        },
+        {
+          "value": "85.7",
+          "telemetryDataId": 31,
+          "recievedAt": "2025-05-16T12:00:00.000Z"
+        },
+        {
+          "value": "-50",
+          "telemetryDataId": 32,
+          "recievedAt": "2025-05-16T12:01:00.000Z"
+        }
+      ]
+    }
+  ]
+}
