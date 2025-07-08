@@ -1,6 +1,8 @@
 import fetch from "node-fetch";
 import { Config, DataStreamPayload, BatchDataStreamPayload } from "./type";
 import configJson from "../config.json";
+import io from "socket.io-client";
+import { Socket } from "socket.io-client";
 
 const config: Config = configJson;
 const BASE_URL = "http://localhost:3000/api/v1";
@@ -61,11 +63,6 @@ async function getSensorToken(userToken: string): Promise<string> {
 async function postDataStream(sensorToken: string): Promise<void> {
   console.log("🔑 Token for posting data stream:", sensorToken);
   const basePayload = config.datastream;
-  // const payload: DataStreamPayload = {
-  //   telemetryDataId: basePayload.telemetryDataId,
-  //   value: (Math.random() * 100).toFixed(1),
-  //   recievedAt: new Date().toISOString(),
-  // };
   const allowedValues = [6, 7, 8];
   const payload: DataStreamPayload = {
     telemetryDataId: basePayload.telemetryDataId,
@@ -144,8 +141,54 @@ async function postBatchDataStream(sensorToken: string): Promise<void> {
   console.log("✅ Datastream submitted:", data);
 }
 
+function listenToSocketIO() {
+  const socket = io("http://localhost:3000", {
+    path: "/socket.io",
+    transports: ["websocket", "polling"],
+    reconnection: true,
+    reconnectionAttempts: 10,
+    reconnectionDelay: 1000,
+  });
+
+  // Catch-all event listener for debugging
+  (socket as any).onAny((event: string, ...args: unknown[]) => {
+    console.log(`[SOCKET EVENT] ${event}:`, ...args);
+  });
+
+  socket.on("connect", () => {
+    console.log(`🟢 Connected to Socket.IO server (ID: ${socket.id})`);
+    // Join the telemetry-1 room for debugging (replace with actual ID if needed)
+    socket.emit("join", "telemetry-1");
+  });
+
+  socket.on("connect_error", (error: Error) => {
+    console.error("❌ Socket.IO connection error:", error);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("🔴 Disconnected from Socket.IO server");
+  });
+
+  socket.on("datastreams-update", (data: unknown) => {
+    console.log("📡 [datastreams-update]", data);
+  });
+
+  socket.on("new-datastream", (data: unknown) => {
+    console.log("🆕 [new-datastream]", data);
+  });
+
+  socket.on("update-datastream", (data: unknown) => {
+    console.log("✏️ [update-datastream]", data);
+  });
+
+  socket.on("delete-datastream", (data: unknown) => {
+    console.log("❌ [delete-datastream]", data);
+  });
+}
+
 async function main() {
   try {
+    listenToSocketIO();
     console.log("🔐 Logging in...");
     const userToken = await login();
     console.log("✅ User token acquired");
