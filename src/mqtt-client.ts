@@ -29,21 +29,23 @@ function getRandomValue(): string {
   return allowedValues[Math.floor(Math.random() * allowedValues.length)].toString();
 }
 
-function getSinglePayload(telemetryDataId: number): DataStreamPayload {
+function getSinglePayload(telemetryDataId: number, deviceToken: string): DataStreamPayload & { token?: string } {
   return {
     telemetryDataId,
     value: getRandomValue(),
     recievedAt: new Date().toISOString(),
+    token: deviceToken, // Include token in payload for device authentication
   };
 }
 
-function getBatchPayload(telemetryDataIds: number[]): BatchDataStreamPayload {
+function getBatchPayload(telemetryDataIds: number[], deviceToken: string): BatchDataStreamPayload & { token?: string } {
   return {
     dataStreams: telemetryDataIds.map(id => ({
       telemetryDataId: id,
       value: getRandomValue(),
       recievedAt: new Date().toISOString(),
-    }))
+    })),
+    token: deviceToken, // Include token in payload for device authentication
   };
 }
 
@@ -103,7 +105,7 @@ export function startMqttTestLoop(options: MqttTestOptions, telemetryDataIds: nu
     
     if (count % 2 === 0) {
       // Single datastream (like HTTP postDataStream)
-      const payload = getSinglePayload(telemetryDataIds[0]);
+      const payload = getSinglePayload(telemetryDataIds[0], deviceToken);
       client.publish(publishTopic, JSON.stringify(payload), { qos }, (err: unknown) => {
         if (err) console.error('❌ MQTT publish error (single):', err);
         else {
@@ -120,7 +122,7 @@ export function startMqttTestLoop(options: MqttTestOptions, telemetryDataIds: nu
       });
     } else {
       // Batch datastream (like HTTP postBatchDataStream)
-      const payload = getBatchPayload(telemetryDataIds);
+      const payload = getBatchPayload(telemetryDataIds, deviceToken);
       client.publish(publishTopic, JSON.stringify(payload), { qos }, (err: unknown) => {
         if (err) console.error('❌ MQTT publish error (batch):', err);
         else {
